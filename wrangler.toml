@@ -1,0 +1,16 @@
+name = "workers-chat"
+main = "src/index.ts"
+compatibility_date = "2023-01-05"
+
+kv_namespaces = [
+    { binding = "DB", id = "df3f25720b7d41d7b347eebc4391b34b", preview_id = "38b0f0ee251d43a28405f21695d81cc5" }
+]
+
+[durable_objects]
+bindings = [
+    {name = "COUNTER", class_name = "CounterObject"}
+]
+
+[[migrations]]
+tag = "v1" # Should be unique for each entry
+new_classes = ["CounterObject"] # Array of new classes
