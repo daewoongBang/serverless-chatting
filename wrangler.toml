@@ -8,9 +8,9 @@ kv_namespaces = [
 
 [durable_objects]
 bindings = [
-    {name = "COUNTER", class_name = "CounterObject"}
+    {name = "CHAT", class_name = "ChatRoom"}
 ]
 
 [[migrations]]
 tag = "v1" # Should be unique for each entry
-new_classes = ["CounterObject"] # Array of new classes
+new_classes = ["ChatRoom"] # Array of new classes

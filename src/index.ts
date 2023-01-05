@@ -1,10 +1,11 @@
-import { home } from './pages/home';
-import { makeBadge, makeStatusResponse } from './utils';
+// @ts-ignore
+import home from './home.html';
+import { makeStatusResponse } from './utils';
 
 export interface Env {
   DB: KVNamespace;
 
-  COUNTER: DurableObjectNamespace;
+  CHAT: DurableObjectNamespace;
 }
 
 const statusCodes = {
@@ -13,11 +14,11 @@ const statusCodes = {
   NOT_FOUND: 404
 };
 
-export class CounterObject {
-  counter: number;
+export class ChatRoom {
+  state: DurableObjectState;
 
-  constructor() {
-    this.counter = 0;
+  constructor(state: DurableObjectState, env: Env) {
+    this.state = state;
   }
 
   async fetch(request: Request) {
@@ -40,17 +41,24 @@ export class CounterObject {
       return makeStatusResponse(statusCodes.NOT_FOUND);
     };
 
+    const handleConnect = (request: Request) => {
+      const pairs = new WebSocketPair();
+      handleWebSocket(pairs[1]);
+
+      return new Response(null, { status: 101, webSocket: pairs[0] });
+    };
+
+    const handleWebSocket = (webSocket: WebSocket) => {
+      webSocket.accept();
+      webSocket.send(JSON.stringify({ message: 'hello world!' }));
+    };
+
     switch (pathname) {
       case '/':
-        return new Response(this.counter);
+        return handleHome();
 
-      case '/+':
-        this.counter++;
-        return new Response(this.counter);
-
-      case '/-':
-        this.counter--;
-        return new Response(this.counter);
+      case '/connect':
+        return handleConnect(request);
 
       default:
         return handleNotFound();
@@ -64,8 +72,8 @@ export default {
     env: Env,
     ctx: ExecutionContext
   ): Promise<Response> {
-    const id = env.COUNTER.idFromName('counter');
-    const durableObject = env.COUNTER.get(id);
+    const id = env.CHAT.idFromName('CHAT');
+    const durableObject = env.CHAT.get(id);
     const response = await durableObject.fetch(request);
 
     return response;
