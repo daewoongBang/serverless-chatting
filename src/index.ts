@@ -16,9 +16,13 @@ const statusCodes = {
 
 export class ChatRoom {
   state: DurableObjectState;
+  users: WebSocket[];
+  messages: string[];
 
   constructor(state: DurableObjectState, env: Env) {
     this.state = state;
+    this.users = [];
+    this.messages = [];
   }
 
   async fetch(request: Request) {
@@ -50,7 +54,14 @@ export class ChatRoom {
 
     const handleWebSocket = (webSocket: WebSocket) => {
       webSocket.accept();
-      webSocket.send(JSON.stringify({ message: 'hello world!' }));
+      this.users.push(webSocket);
+      webSocket.send(JSON.stringify({ message: 'hello world from backend!' }));
+      this.messages.forEach(messages => webSocket.send(messages));
+
+      webSocket.addEventListener('message', event => {
+        this.messages.push(event.data.toString());
+        this.users.forEach(user => user.send(event.data));
+      });
     };
 
     switch (pathname) {
